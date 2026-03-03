@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "Bash(node:*)",
+      "Bash(cd /c/Users/joh_l/Auto-claude && ./node_modules/.bin/tsc 2>&1)",
+      "Bash(cd /c/Users/joh_l/Auto-claude && ./node_modules/.bin/vitest run 2>&1)",
+      "Bash(npm run build:*)",
+      "Bash(npm run typecheck:*)"
+    ]
+  }
+}

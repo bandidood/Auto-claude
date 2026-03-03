@@ -1,0 +1,41 @@
+services:
+  auto-claude-local:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auto-claude-local
+    restart: unless-stopped
+
+    # Variables d'environnement — à remplir dans le .env
+    env_file:
+      - .env
+    environment:
+      # Clé API Anthropic (obligatoire pour Claude Code)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ALLOWED_CHAT_ID=${ALLOWED_CHAT_ID}
+      - ALLOWED_CHAT_IDS=${ALLOWED_CHAT_IDS:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      # Chemin workspace accessible à Claude à l'intérieur du conteneur
+      - PROJECT_ROOT=/workspace
+
+    user: "1001"
+
+    volumes:
+      - ./store:/app/store
+      - ./workspace:/workspace
+      - claude-sessions-local:/home/claude/.claude
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  claude-sessions-local:
+    driver: local

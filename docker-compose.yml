@@ -1,0 +1,53 @@
+services:
+  auto-claude:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auto-claude
+    restart: unless-stopped
+
+    # Variables d'environnement — à remplir dans le .env
+    env_file:
+      - .env
+    environment:
+      # Clé API Anthropic (obligatoire pour Claude Code)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ALLOWED_CHAT_ID=${ALLOWED_CHAT_ID}
+      - ALLOWED_CHAT_IDS=${ALLOWED_CHAT_IDS:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY:-}
+      - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      # Chemin workspace accessible à Claude à l'intérieur du conteneur
+      - PROJECT_ROOT=/workspace
+
+    volumes:
+      # Persistance de la base SQLite pour Coolify
+      - store-data:/app/store
+      
+      # Workspace que Claude Code peut lire/écrire
+      - workspace-data:/workspace
+
+      # Persistance des sessions Claude Code
+      - claude-sessions:/root/.claude
+
+    # Accès aux commandes système du host (optionnel)
+    # volumes:
+    #   - /var/run/docker.sock:/var/run/docker.sock
+
+    # Logging structuré
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  store-data:
+    driver: local
+  workspace-data:
+    driver: local
+  claude-sessions:
+    driver: local
