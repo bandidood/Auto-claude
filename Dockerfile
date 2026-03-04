@@ -83,8 +83,11 @@ COPY scripts/ ./scripts/
 COPY CLAUDE.md ./
 
 # Créer les répertoires nécessaires et donner les droits à l'utilisateur claude
+# chmod 777 sur /app/store : quand le bind-mount host est appliqué au runtime,
+# il écrase les perms de l'image — 777 garantit l'accès en écriture dans tous les cas
 RUN mkdir -p /app/store /workspace /home/claude/.claude/projects \
-    && chown -R claude:claude /app /workspace /home/claude /opt/puppeteer
+    && chown -R claude:claude /app /workspace /home/claude /opt/puppeteer \
+    && chmod -R 777 /app/store
 
 # Variables d'environnement par défaut
 ENV NODE_ENV=production \
