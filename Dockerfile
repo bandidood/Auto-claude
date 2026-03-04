@@ -25,17 +25,17 @@ RUN useradd -m -u 1001 -s /bin/bash claude
 # Répertoire de travail du projet
 WORKDIR /app
 
-# Copier les fichiers de dépendances
+# Copier les fichiers de configuration et les sources
 COPY package*.json ./
 COPY .npmrc* ./
-COPY tsconfig.json ./
-
-# Installer les dépendances Node
-RUN npm ci --omit=dev
-
-# Copier le code source compilé
-COPY dist/ ./dist/
+COPY tsconfig*.json ./
 COPY src/ ./src/
+
+# Installer les dépendances et builder
+RUN npm install
+RUN npm run build
+
+# Copier les autres fichiers
 COPY scripts/ ./scripts/
 COPY CLAUDE.md ./
 
