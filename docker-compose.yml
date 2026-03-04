@@ -20,37 +20,30 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - PROJECT_ROOT=/workspace
-      # Puppeteer/Chrome installé dans /opt/puppeteer au moment du build
+      # Chrome installé dans /opt/puppeteer au moment du build Docker
       - PUPPETEER_CACHE_DIR=/opt/puppeteer
 
     volumes:
-      # Base SQLite (conversations, mémoire, tâches planifiées)
-      - store-data:/app/store
+      # ── Bind mounts explicites — persistance réelle entre redémarrages ────────
+      # Les dossiers host sont créés automatiquement par Docker si absents.
+      # Inspectables directement sur le VPS sous /data/coolify/volumes/
+
+      # Base SQLite : conversations, mémoire, tâches planifiées
+      - /data/coolify/volumes/auto-claude-store:/app/store
 
       # Workspace que Claude Code peut lire/écrire
-      - workspace-data:/workspace
+      - /data/coolify/volumes/auto-claude-workspace:/workspace
 
-      # ✅ CORRIGÉ : sessions Claude Code → HOME de l'user 'claude' = /home/claude
-      # (avant c'était /root/.claude → mauvais user → sessions perdues au redémarrage)
-      - claude-sessions:/home/claude/.claude
+      # Auth Claude Code (.credentials.json, settings.json, sessions)
+      # ⚠️  User dans le container = 'claude' (uid 1001, HOME=/home/claude)
+      #     → destination /home/claude/.claude  (PAS /root/.claude)
+      - /data/coolify/volumes/auto-claude-auth:/home/claude/.claude
 
-      # Session WhatsApp (QR scanné → persistée entre redémarrages)
-      - wa-session:/app/store/wa-session
+      # Session WhatsApp Web — QR code scanné une seule fois
+      - /data/coolify/volumes/auto-claude-wa:/app/store/wa-session
 
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  store-data:
-    driver: local
-  workspace-data:
-    driver: local
-  # Sessions Claude Code CLI (authentification Anthropic + historique)
-  claude-sessions:
-    driver: local
-  # Session WhatsApp Web (QR code scanné une seule fois)
-  wa-session:
-    driver: local
