@@ -32,6 +32,7 @@ COPY tsconfig.json ./
 
 # Installer les dépendances Node
 RUN npm ci --omit=dev
+RUN npm run build
 
 # Copier le code source compilé
 COPY dist/ ./dist/
