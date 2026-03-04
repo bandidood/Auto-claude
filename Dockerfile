@@ -56,6 +56,22 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 # Installer Claude CLI globalement (requis par @anthropic-ai/claude-agent-sdk)
 RUN npm install -g @anthropic-ai/claude-code
 
+# Wrapper : le SDK @anthropic-ai/claude-agent-sdk passe --no-interactive
+# au binaire claude. Si la version installée ne le supporte pas → crash.
+# Ce wrapper intercepte l'appel et filtre le flag problématique.
+RUN CLAUDE_BIN=$(which claude) \
+    && mv "$CLAUDE_BIN" "${CLAUDE_BIN}-real" \
+    && { \
+    echo '#!/bin/bash'; \
+    echo '# Wrapper claude : supprime --no-interactive non supporté'; \
+    echo 'args=()'; \
+    echo 'for arg in "$@"; do'; \
+    echo '  [ "$arg" != "--no-interactive" ] && args+=("$arg")'; \
+    echo 'done'; \
+    echo "exec \"${CLAUDE_BIN}-real\" \"\${args[@]}\""; \
+    } > "$CLAUDE_BIN" \
+    && chmod +x "$CLAUDE_BIN"
+
 # Créer un utilisateur non-root (Claude Code refuse de tourner en root)
 RUN useradd -m -u 1001 -s /bin/bash claude
 
