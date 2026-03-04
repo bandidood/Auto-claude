@@ -72,9 +72,11 @@ COPY src/ ./src/
 RUN npm install
 RUN npm run build
 
-# Installer Chrome pour Puppeteer/whatsapp-web.js
-ENV PUPPETEER_CACHE_DIR=/home/claude/.cache/puppeteer
-RUN npx puppeteer browsers install chrome
+# Installer Chrome dans un dossier système (pas dans le HOME user)
+# Ainsi le volume Docker ne l'écrase pas au runtime
+ENV PUPPETEER_CACHE_DIR=/opt/puppeteer
+RUN npx puppeteer browsers install chrome \
+    && chmod -R 755 /opt/puppeteer
 
 # Copier les autres fichiers
 COPY scripts/ ./scripts/
@@ -82,7 +84,7 @@ COPY CLAUDE.md ./
 
 # Créer les répertoires nécessaires et donner les droits à l'utilisateur claude
 RUN mkdir -p /app/store /workspace /home/claude/.claude/projects \
-    && chown -R claude:claude /app /workspace /home/claude
+    && chown -R claude:claude /app /workspace /home/claude /opt/puppeteer
 
 # Variables d'environnement par défaut
 ENV NODE_ENV=production \

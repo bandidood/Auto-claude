@@ -6,11 +6,10 @@ services:
     container_name: auto-claude
     restart: unless-stopped
 
-    # Variables d'environnement — à remplir dans le .env
+    # Variables d'environnement — à remplir dans Coolify ou .env
     env_file:
       - .env
     environment:
-      # Clé API Anthropic (obligatoire pour Claude Code)
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - ALLOWED_CHAT_ID=${ALLOWED_CHAT_ID}
@@ -20,24 +19,24 @@ services:
       - ELEVENLABS_VOICE_ID=${ELEVENLABS_VOICE_ID:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - LOG_LEVEL=${LOG_LEVEL:-info}
-      # Chemin workspace accessible à Claude à l'intérieur du conteneur
       - PROJECT_ROOT=/workspace
+      # Puppeteer/Chrome installé dans /opt/puppeteer au moment du build
+      - PUPPETEER_CACHE_DIR=/opt/puppeteer
 
     volumes:
-      # Persistance de la base SQLite pour Coolify
+      # Base SQLite (conversations, mémoire, tâches planifiées)
       - store-data:/app/store
-      
+
       # Workspace que Claude Code peut lire/écrire
       - workspace-data:/workspace
 
-      # Persistance des sessions Claude Code
-      - claude-sessions:/root/.claude
+      # ✅ CORRIGÉ : sessions Claude Code → HOME de l'user 'claude' = /home/claude
+      # (avant c'était /root/.claude → mauvais user → sessions perdues au redémarrage)
+      - claude-sessions:/home/claude/.claude
 
-    # Accès aux commandes système du host (optionnel)
-    # volumes:
-    #   - /var/run/docker.sock:/var/run/docker.sock
+      # Session WhatsApp (QR scanné → persistée entre redémarrages)
+      - wa-session:/app/store/wa-session
 
-    # Logging structuré
     logging:
       driver: "json-file"
       options:
@@ -49,5 +48,9 @@ volumes:
     driver: local
   workspace-data:
     driver: local
+  # Sessions Claude Code CLI (authentification Anthropic + historique)
   claude-sessions:
+    driver: local
+  # Session WhatsApp Web (QR code scanné une seule fois)
+  wa-session:
     driver: local
