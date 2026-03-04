@@ -135,13 +135,39 @@ async function main(): Promise<void> {
     bot.stop()
   })
 
-  // Start the bot
-  logger.info('ClaudeClaw running — waiting for messages...')
-  await bot.start({
-    onStart: ({ username }) => {
-      logger.info({ username }, `Bot @${username} started`)
-    },
-  })
+  // Supprimer tout webhook résiduel et libérer un éventuel getUpdates déjà actif
+  try {
+    await bot.api.deleteWebhook({ drop_pending_updates: false })
+    logger.info('Webhook deleted (clean slate for long-polling)')
+  } catch (err) {
+    logger.warn({ err }, 'deleteWebhook failed — continuing anyway')
+  }
+
+  // Petit délai pour que Telegram libère la session précédente (évite 409)
+  await new Promise(resolve => setTimeout(resolve, 3000))
+
+  // Start the bot with retry sur 409
+  const startBot = async (attempt = 1): Promise<void> => {
+    try {
+      logger.info(`ClaudeClaw running — waiting for messages... (attempt ${attempt})`)
+      await bot.start({
+        onStart: ({ username }) => {
+          logger.info({ username }, `Bot @${username} started`)
+        },
+      })
+    } catch (err: unknown) {
+      const msg = String(err)
+      if (msg.includes('409') && attempt < 5) {
+        const delay = attempt * 15000
+        logger.warn({ attempt, delay }, `Telegram 409 conflict — retrying in ${delay / 1000}s`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+        await startBot(attempt + 1)
+      } else {
+        throw err
+      }
+    }
+  }
+  await startBot()
 }
 
 main().catch(err => {
