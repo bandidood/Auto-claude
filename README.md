@@ -1,5 +1,8 @@
 # 🦀 ClaudeClaw
 
+> **Resource name**: bandidood/-auto-claude:main-sokc0o84gwww4ss8ck0ssc00
+> **Latest Deployment Date**: 2026-03-04 23:22:21
+
 ClaudeClaw est un agent IA autonome basé sur **Claude Code** (Anthropic) et connecté à **Telegram** (avec support WhatsApp). Il agit comme un assistant de développement complet, capable d'exécuter des commandes, lire et éditer des fichiers dans son espace de travail, et réaliser des tâches asynchrones complexes.
 
 ## ✨ Fonctionnalités
