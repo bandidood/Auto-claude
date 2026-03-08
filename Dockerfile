@@ -97,21 +97,22 @@ RUN npx puppeteer browsers install chrome \
 # Copier les autres fichiers
 COPY scripts/ ./scripts/
 COPY CLAUDE.md ./
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Créer les répertoires nécessaires et donner les droits à l'utilisateur claude
-# chmod 777 sur /app/store : quand le bind-mount host est appliqué au runtime,
-# il écrase les perms de l'image — 777 garantit l'accès en écriture dans tous les cas
 RUN mkdir -p /app/store /workspace /home/claude/.claude/projects \
     && chown -R claude:claude /app /workspace /home/claude /opt/puppeteer \
-    && chmod -R 777 /app/store
+    && chmod -R 777 /app/store /home/claude/.claude
 
 # Variables d'environnement par défaut
 ENV NODE_ENV=production \
     LOG_LEVEL=info \
     HOME=/home/claude
 
-# Basculer sur l'utilisateur non-root
-USER claude
+# On reste en ROOT pour que docker-entrypoint.sh puisse faire le chown sur les volumes montés
+# Le script descendra lui-même les privilèges vers l'utilisateur 'claude'
+USER root
 
 # Point d'entrée
-CMD ["node", "dist/index.js"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
