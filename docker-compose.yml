@@ -42,8 +42,8 @@ services:
       # Session WhatsApp Web — QR code scanné une seule fois
       - /data/coolify/volumes/auto-claude-wa:/app/store/wa-session
 
-      # Fichier de session global Claude Code (OAuth)
-      - /data/coolify/volumes/auto-claude-session-json:/home/claude/.claude.json
+      # Fichier de session global Claude Code (OAuth) via un dossier pour éviter le bug de Docker
+      - /data/coolify/volumes/auto-claude-session-folder:/home/claude/.claude_session
 
     logging:
       driver: "json-file"

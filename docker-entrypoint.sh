@@ -6,9 +6,16 @@ set -e
 echo "[entrypoint] Checking permissions for /home/claude..."
 
 # S'assurer que les volumes montés appartiennent bien à l'utilisateur 'claude'
-# On utilise sudo si nécessaire, ou on s'attend à ce que le script puisse le faire
-# Note: Dans notre Dockerfile, on va passer root -> script -> claude
 chown -R claude:claude /home/claude /app /workspace /opt/puppeteer
+
+# Créer le lien symbolique pour la session Claude si le dossier de volume existe
+if [ -d "/home/claude/.claude_session" ]; then
+    echo "[entrypoint] Setting up Claude session symlink..."
+    # Supprimer un éventuel fichier/dossier existant pour éviter les conflits
+    rm -rf /home/claude/.claude.json
+    ln -s /home/claude/.claude_session/.claude.json /home/claude/.claude.json
+    chown claude:claude /home/claude/.claude.json
+fi
 
 echo "[entrypoint] Starting ClaudeClaw as user 'claude'..."
 
