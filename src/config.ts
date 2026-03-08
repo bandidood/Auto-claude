@@ -27,6 +27,9 @@ export const GOOGLE_API_KEY = env['GOOGLE_API_KEY'] || process.env.GOOGLE_API_KE
 // Multi-user (comma-separated list of allowed chat IDs)
 export const ALLOWED_CHAT_IDS = env['ALLOWED_CHAT_IDS'] || process.env.ALLOWED_CHAT_IDS || ''
 
+// WhatsApp
+export const WHATSAPP_ENABLED = (env['WHATSAPP_ENABLED'] || process.env.WHATSAPP_ENABLED || 'false') === 'true'
+
 // Limits
 export const MAX_MESSAGE_LENGTH = 4096
 export const TYPING_REFRESH_MS = 4000

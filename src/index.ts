@@ -8,7 +8,7 @@ import { runDecaySweep } from './memory.js'
 import { cleanupOldUploads } from './media.js'
 import { initScheduler, stopScheduler } from './scheduler.js'
 import { initWhatsApp, stopWhatsApp } from './whatsapp.js'
-import { TELEGRAM_BOT_TOKEN, STORE_DIR } from './config.js'
+import { TELEGRAM_BOT_TOKEN, STORE_DIR, WHATSAPP_ENABLED } from './config.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -115,23 +115,27 @@ async function main(): Promise<void> {
   // Initialize scheduler
   initScheduler(sendMessage)
 
-  // Initialize WhatsApp bridge
-  initWhatsApp(async (waChatId, contact, body) => {
-    // Forward incoming WhatsApp messages to the primary Telegram chat
-    const { ALLOWED_CHAT_ID } = await import('./config.js')
-    if (ALLOWED_CHAT_ID) {
-      const preview = body.length > 100 ? body.slice(0, 100) + '...' : body
-      await bot.api.sendMessage(
-        ALLOWED_CHAT_ID,
-        `WhatsApp from ${contact}:\n${preview}`
-      )
-    }
-  })
+  // Initialize WhatsApp bridge (conditional)
+  if (WHATSAPP_ENABLED) {
+    initWhatsApp(async (waChatId, contact, body) => {
+      // Forward incoming WhatsApp messages to the primary Telegram chat
+      const { ALLOWED_CHAT_ID } = await import('./config.js')
+      if (ALLOWED_CHAT_ID) {
+        const preview = body.length > 100 ? body.slice(0, 100) + '...' : body
+        await bot.api.sendMessage(
+          ALLOWED_CHAT_ID,
+          `WhatsApp from ${contact}:\n${preview}`
+        )
+      }
+    })
+  } else {
+    logger.info('WhatsApp bridge disabled')
+  }
 
   // Graceful shutdown
   setupShutdown(() => {
     stopScheduler()
-    stopWhatsApp()
+    if (WHATSAPP_ENABLED) stopWhatsApp()
     bot.stop()
   })
 
